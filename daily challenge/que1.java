@@ -1,64 +1,93 @@
--------JUMP GAME 7(in roman)-----------------------
+// Given an array of integers arr and an integer d. In one step you can jump from index i to index:
 
-// You are given a 0-indexed binary string s and two integers minJump and maxJump. In the beginning, you are standing at index 0, which is equal to '0'. You can move from index i to index j if the following conditions are fulfilled:
+// i + x where: i + x < arr.length and  0 < x <= d.
+// i - x where: i - x >= 0 and  0 < x <= d.
+// In addition, you can only jump from index i to index j if arr[i] > arr[j] and arr[i] > arr[k] for all indices k between i and j (More formally min(i, j) < k < max(i, j)).
 
-// i + minJump <= j <= min(i + maxJump, s.length - 1), and
-// s[j] == '0'.
-// Return true if you can reach index s.length - 1 in s, or false otherwise.
+// You can choose any index of the array and start jumping. Return the maximum number of indices you can visit.
+
+// Notice that you can not jump outside of the array at any time.
 
  
 
 // Example 1:
 
-// Input: s = "011010", minJump = 2, maxJump = 3
-// Output: true
-// Explanation:
-// In the first step, move from index 0 to index 3. 
-// In the second step, move from index 3 to index 5.
+
+// Input: arr = [6,4,14,6,8,13,9,7,10,6,12], d = 2
+// Output: 4
+// Explanation: You can start at index 10. You can jump 10 --> 8 --> 6 --> 7 as shown.
+// Note that if you start at index 6 you can only jump to index 7. You cannot jump to index 5 because 13 > 9. You cannot jump to index 4 because index 5 is between index 4 and 6 and 13 > 9.
+// Similarly You cannot jump from index 3 to index 2 or index 1.
 // Example 2:
 
-// Input: s = "01101110", minJump = 2, maxJump = 3
-// Output: false
+// Input: arr = [3,3,3,3,3], d = 3
+// Output: 1
+// Explanation: You can start at any index. You always cannot jump to any index.
+// Example 3:
+
+// Input: arr = [7,6,5,4,3,2,1], d = 1
+// Output: 7
+// Explanation: Start at index 0. You can visit all the indicies. 
  
 
 // Constraints:
 
-// 2 <= s.length <= 105
-// s[i] is either '0' or '1'.
-// s[0] == '0'
-// 1 <= minJump <= maxJump < s.length
+// 1 <= arr.length <= 1000
+// 1 <= arr[i] <= 105
+// 1 <= d <= arr.length
 
 
----------------------solution--------------------------
+// solution
 
 
 class Solution {
-    public boolean canReach(String s, int minJump, int maxJump) {
-        int n = s.length();
+    int[] dp;
 
-        boolean[] visited = new boolean[n];
-        visited[0] = true;
+    public int maxJumps(int[] arr, int d) {
+        int n = arr.length;
+        dp = new int[n];
 
-        int farthest = 0;
+        int ans = 1;
 
         for (int i = 0; i < n; i++) {
-
-            if (!visited[i]) continue;
-
-            int start = Math.max(i + minJump, farthest + 1);
-            int end = Math.min(i + maxJump, n - 1);
-
-            for (int j = start; j <= end; j++) {
-                if (s.charAt(j) == '0') {
-                    visited[j] = true;
-                }
-            }
-
-            farthest = end;
-
-            if (visited[n - 1]) return true;
+            ans = Math.max(ans, dfs(arr, d, i));
         }
 
-        return visited[n - 1];
+        return ans;
+    }
+
+    private int dfs(int[] arr, int d, int i) {
+
+        // Already calculated
+        if (dp[i] != 0) {
+            return dp[i];
+        }
+
+        int max = 1;
+
+        // Check left side
+        for (int j = i - 1; j >= Math.max(0, i - d); j--) {
+
+            // Stop if greater or equal element found
+            if (arr[j] >= arr[i]) {
+                break;
+            }
+
+            max = Math.max(max, 1 + dfs(arr, d, j));
+        }
+
+        // Check right side
+        for (int j = i + 1; j <= Math.min(arr.length - 1, i + d); j++) {
+
+            // Stop if greater or equal element found
+            if (arr[j] >= arr[i]) {
+                break;
+            }
+
+            max = Math.max(max, 1 + dfs(arr, d, j));
+        }
+
+        dp[i] = max;
+        return max;
     }
 }
