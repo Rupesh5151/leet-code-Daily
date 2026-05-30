@@ -50,9 +50,9 @@ import java.util.*;
 
 class Solution {
 
-    static class SegmentTree {
-        int n;
+    class SegmentTree {
         int[] tree;
+        int n;
 
         SegmentTree(int n) {
             this.n = n;
@@ -69,12 +69,13 @@ class Solution {
                 return;
             }
 
-            int mid = (l + r) >> 1;
+            int mid = (l + r) / 2;
 
-            if (idx <= mid)
+            if (idx <= mid) {
                 update(node * 2, l, mid, idx, val);
-            else
+            } else {
                 update(node * 2 + 1, mid + 1, r, idx, val);
+            }
 
             tree[node] = Math.max(tree[node * 2], tree[node * 2 + 1]);
         }
@@ -84,29 +85,30 @@ class Solution {
         }
 
         private int query(int node, int l, int r, int L, int R) {
-            if (L > r || R < l)
-                return 0;
+            if (r < L || l > R) return 0;
 
-            if (L <= l && r <= R)
+            if (L <= l && r <= R) {
                 return tree[node];
+            }
 
-            int mid = (l + r) >> 1;
+            int mid = (l + r) / 2;
 
             return Math.max(
-                    query(node * 2, l, mid, L, R),
-                    query(node * 2 + 1, mid + 1, r, L, R)
+                query(node * 2, l, mid, L, R),
+                query(node * 2 + 1, mid + 1, r, L, R)
             );
         }
     }
 
     public List<Boolean> getResults(int[][] queries) {
-        final int MAX = 50000;
+
+        final int MAX = 50001; // sentinel > all possible obstacle positions
 
         TreeSet<Integer> obstacles = new TreeSet<>();
         obstacles.add(0);
         obstacles.add(MAX);
 
-        
+        // Add all obstacles initially
         for (int[] q : queries) {
             if (q[0] == 1) {
                 obstacles.add(q[1]);
@@ -115,7 +117,6 @@ class Solution {
 
         SegmentTree seg = new SegmentTree(MAX + 1);
 
-        
         Integer prev = null;
         for (int pos : obstacles) {
             if (prev != null) {
@@ -126,27 +127,35 @@ class Solution {
 
         List<Boolean> ans = new ArrayList<>();
 
-        
+        // Process queries in reverse
         for (int i = queries.length - 1; i >= 0; i--) {
+
             int[] q = queries[i];
 
             if (q[0] == 1) {
+
                 int p = q[1];
 
-                int left = obstacles.lower(p);
-                int right = obstacles.higher(p);
+                Integer left = obstacles.lower(p);
+                Integer right = obstacles.higher(p);
 
                 obstacles.remove(p);
 
-                seg.update(p, 0);                 // gap ending at p removed
-                seg.update(right, right - left);  // merged gap
+                // Remove gap ending at p
+                seg.update(p, 0);
+
+                // Merge left and right gaps
+                seg.update(right, right - left);
+
             } else {
+
                 int x = q[1];
                 int sz = q[2];
 
                 int bestGap = seg.query(0, x);
 
-                int lastObstacle = obstacles.floor(x);
+                Integer lastObstacle = obstacles.floor(x);
+
                 bestGap = Math.max(bestGap, x - lastObstacle);
 
                 ans.add(bestGap >= sz);
